@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 5
+
+void generatePlayfairMatrix(char *key, char matrix[SIZE][SIZE]) {
+    int used[26] = {0};
+    int i, j, k = 0;
+    
+    // Fill matrix with key letters first
+    for (i = 0; key[i] != '\0'; i++) {
+        if (key[i] != 'J' && !used[toupper(key[i]) - 'A']) {
+            matrix[k / SIZE][k % SIZE] = toupper(key[i]);
+            used[toupper(key[i]) - 'A'] = 1;
+            k++;
+        }
+    }
+    
+    // Fill remaining letters
+    for (i = 0; i < 26; i++) {
+        if (i != ('J' - 'A') && !used[i]) {
+            matrix[k / SIZE][k % SIZE] = 'A' + i;
+            k++;
+        }
+    }
+}
+
+void decryptPlayfair(char *text, char matrix[SIZE][SIZE]) {
+    for (int i = 0; text[i] != '\0' && text[i + 1] != '\0'; i += 2) {
+        int row1, col1, row2, col2;
+        
+        // Locate pairs in matrix
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                if (matrix[r][c] == text[i]) {
+                    row1 = r; col1 = c;
+                }
+                if (matrix[r][c] == text[i + 1]) {
+                    row2 = r; col2 = c;
+                }
+            }
+        }
+        
+        // Apply Playfair decryption rules
+        if (row1 == row2) { // Same row
+            text[i] = matrix[row1][(col1 + SIZE - 1) % SIZE];
+            text[i + 1] = matrix[row2][(col2 + SIZE - 1) % SIZE];
+        } else if (col1 == col2) { // Same column
+            text[i] = matrix[(row1 + SIZE - 1) % SIZE][col1];
+            text[i + 1] = matrix[(row2 + SIZE - 1) % SIZE][col2];
+        } else { // Rectangle swap
+            text[i] = matrix[row1][col2];
+            text[i + 1] = matrix[row2][col1];
+        }
+    }
+}
+
+int main() {
+    char matrix[SIZE][SIZE];
+    char key[] = "PLAYFAIR";
+    char text[] = "KXJEYUREBEZWEHEWRYTUHEYFSKREHEGOYFIWTTTUOLKSYCAJPOBOTEIZONTXBYBNTGONEYCUZWRGDSONSXBOUYWRHEBAAHYUSEDQ";
+    
+    generatePlayfairMatrix(key, matrix);
+    decryptPlayfair(text, matrix);
+    
+    printf("Decrypted text: %s\n", text);
+    
+    return 0;
+}

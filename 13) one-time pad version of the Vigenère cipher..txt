@@ -1,0 +1,48 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MOD 26
+
+// Function to encrypt using One-Time Pad Vigenere Cipher
+void otp_vigenere_encrypt(char *plaintext, int *key, char *ciphertext, int key_length) {
+    int len = strlen(plaintext);
+    for (int i = 0; i < len; i++) {
+        if (plaintext[i] == ' ') {
+            ciphertext[i] = ' ';
+        } else {
+            ciphertext[i] = ((plaintext[i] - 'a' + key[i % key_length]) % MOD) + 'a';
+        }
+    }
+    ciphertext[len] = '\0';
+}
+
+// Function to decrypt using One-Time Pad Vigenere Cipher
+void otp_vigenere_decrypt(char *ciphertext, int *key, char *plaintext, int key_length) {
+    int len = strlen(ciphertext);
+    for (int i = 0; i < len; i++) {
+        if (ciphertext[i] == ' ') {
+            plaintext[i] = ' ';
+        } else {
+            plaintext[i] = ((ciphertext[i] - 'a' - key[i % key_length] + MOD) % MOD) + 'a';
+        }
+    }
+    plaintext[len] = '\0';
+}
+
+int main() {
+    char plaintext[] = "send more money";
+    int key[] = {9, 0, 1, 7, 23, 15, 21, 14, 11, 11, 2, 8, 9};
+    int key_length = sizeof(key) / sizeof(key[0]);
+    char ciphertext[strlen(plaintext) + 1];
+    char decrypted_text[strlen(plaintext) + 1];
+    
+    otp_vigenere_encrypt(plaintext, key, ciphertext, key_length);
+    printf("Encrypted text: %s\n", ciphertext);
+    
+    otp_vigenere_decrypt(ciphertext, key, decrypted_text, key_length);
+    printf("Decrypted text: %s\n", decrypted_text);
+    
+    return 0;
+}

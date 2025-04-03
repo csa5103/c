@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+#define KEY_SIZE 64
+#define SUBKEY_SIZE 48
+#define NUM_ROUNDS 16
+
+// Example shift schedule for decryption (reverse of encryption schedule)
+int shift_schedule[NUM_ROUNDS] = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
+
+// Function to generate 16 subkeys for decryption
+void generate_decryption_keys(uint64_t key, uint64_t subkeys[NUM_ROUNDS]) {
+    uint64_t permuted_key = key; // Normally, an initial permutation is applied
+    
+    for (int i = 0; i < NUM_ROUNDS; i++) {
+        // Perform left circular shift in reverse order
+        int shift = shift_schedule[NUM_ROUNDS - 1 - i];
+        permuted_key = (permuted_key >> shift) | (permuted_key << (28 - shift));
+        subkeys[i] = permuted_key & ((1ULL << SUBKEY_SIZE) - 1); // Extract 48-bit key
+    }
+}
+
+// Function to decrypt a block of ciphertext using the generated keys
+void des_decrypt(uint64_t ciphertext, uint64_t subkeys[NUM_ROUNDS], uint64_t *plaintext) {
+    uint64_t state = ciphertext; // Normally, an initial permutation is applied
+    
+    for (int i = 0; i < NUM_ROUNDS; i++) {
+        // Perform decryption round using reversed keys
+        state ^= subkeys[i]; // Example transformation (not full DES)
+    }
+    
+    *plaintext = state; // Normally, a final permutation is applied
+}
+
+int main() {
+    uint64_t key = 0x133457799BBCDFF1; // Example 64-bit key
+    uint64_t subkeys[NUM_ROUNDS];
+    generate_decryption_keys(key, subkeys);
+    
+    uint64_t ciphertext = 0x85E813540F0AB405; // Example ciphertext
+    uint64_t plaintext;
+    
+    des_decrypt(ciphertext, subkeys, &plaintext);
+    
+    printf("Decrypted plaintext: %lx\n", plaintext);
+    return 0;
+}
